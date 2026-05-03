@@ -2,7 +2,7 @@
 
 **Build at the speed of decision. For lean teams.**
 
-Start with **this README** for overview and setup; use **[INDEX.md](INDEX.md)** for skills, workflows, and gates; **[AGENTS.md](AGENTS.md)** and **[CONVENTIONS.md](CONVENTIONS.md)** live in your project (copy from `.laf/`) and are what your AI tools load, together with **`skills/*/SKILL.md`**.
+Start with **this README** for overview and setup; use **[INDEX.md](INDEX.md)** for skills, workflows, and gates; **[CONTEXT-LAYERS.md](CONTEXT-LAYERS.md)** for the 6-layer model; **[AGENTS.md](AGENTS.md)** and **[CONVENTIONS.md](CONVENTIONS.md)** live in your project (copy from `.laf/`) and are what your AI tools load, together with **`skills/*/SKILL.md`**.
 
 A lightweight, tool-agnostic AI workflow framework for small teams (PM + Dev, no QA). Use it to keep multiple AI tools (Cursor, Claude Code, Copilot, Windsurf) working consistently on the same codebase, with built-in approval gates and artifact tracking.
 
@@ -17,6 +17,7 @@ Read these in order the first time; bookmark **INDEX.md** for day‑to‑day rou
 | Document | Purpose |
 |----------|---------|
 | **[README.md](README.md)** | What LAF is, install, symlink setup, first feature |
+| **[CONTEXT-LAYERS.md](CONTEXT-LAYERS.md)** | The 6-layer agent context model (understand what LAF provides and what your team builds) |
 | **[INDEX.md](INDEX.md)** | Skill index: workflows, gates, scenarios, artifact locations |
 | **[AGENTS.md](AGENTS.md)** | Rules every AI assistant must follow (16 rules) |
 | **[CONVENTIONS.md](CONVENTIONS.md)** | Your stack, style, and commands (**customize** in your project root) |
