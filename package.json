@@ -20,10 +20,12 @@
     "url": "https://github.com/your-org/lean-agent-framework"
   },
   "bin": {
-    "laf": "./bin/cli.js"
+    "laf": "./setup.sh"
   },
+  "note": "NPX support planned for v2.0. For now, run setup.sh (Git Bash/Linux/macOS) or setup.ps1 (Windows) from project root.",
   "files": [
-    "bin/",
+    "setup.sh",
+    "setup.ps1",
     "skills/",
     "templates/",
     "examples/",

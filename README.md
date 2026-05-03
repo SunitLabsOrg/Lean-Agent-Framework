@@ -2,9 +2,24 @@
 
 **Build at the speed of decision. For lean teams.**
 
+Start with **this README** for overview and setup; use **[INDEX.md](INDEX.md)** for skills, workflows, and gates; **[AGENTS.md](AGENTS.md)** and **[CONVENTIONS.md](CONVENTIONS.md)** live in your project (copy from `.laf/`) and are what your AI tools load, together with **`skills/*/SKILL.md`**.
+
 A lightweight, tool-agnostic AI workflow framework for small teams (PM + Dev, no QA). Use it to keep multiple AI tools (Cursor, Claude Code, Copilot, Windsurf) working consistently on the same codebase, with built-in approval gates and artifact tracking.
 
 **Inspired by:** [Virtual Product Factory](https://github.com/vshrinath/virtual-product-factory) (VPF), simplified for lean teams.
+
+---
+
+## Documentation map
+
+Read these in order the first time; bookmark **INDEX.md** for day‑to‑day routing.
+
+| Document | Purpose |
+|----------|---------|
+| **[README.md](README.md)** | What LAF is, install, symlink setup, first feature |
+| **[INDEX.md](INDEX.md)** | Skill index: workflows, gates, scenarios, artifact locations |
+| **[AGENTS.md](AGENTS.md)** | Rules every AI assistant must follow (16 rules) |
+| **[CONVENTIONS.md](CONVENTIONS.md)** | Your stack, style, and commands (**customize** in your project root) |
 
 ---
 
@@ -64,11 +79,23 @@ Focused on lean teams:
 | `@quality-check` | Edge case testing | Dev | Test report |
 | `@session-memory` | Persist state | Both | `memory.md` |
 
-### Three Core Files
+### Core documents
 
-1. **`AGENTS.md`** — Universal rules for all AI tools (13 rules, ~350 lines)
+1. **`AGENTS.md`** — Universal rules for all AI tools (16 rules, ~357 lines)
 2. **`CONVENTIONS.md`** — Your team's stack/style decisions (customize this)
-3. **8 Skill files** — Role prompts with input/output specs
+3. **`INDEX.md`** — Skill reference: workflows, gates, scenarios (`skills/*/SKILL.md` for full prompts)
+4. **8 × `skills/<name>/SKILL.md`** — Role prompts loaded on demand
+
+### Where everything lives
+
+| Need | Location |
+|---|---|
+| Workflow rules every tool must follow | `AGENTS.md` (copied into **your project** root) |
+| Stack, style, commands (you own this) | `CONVENTIONS.md` |
+| Skill / workflow diagrams | **`INDEX.md`** |
+| Full prompt / handoffs for one role | `skills/<skill-name>/SKILL.md` |
+| How approval gates work | `templates/APPROVAL-WORKFLOW.md` |
+| Example spec & design | `examples/sample-spec.md`, `examples/sample-tech-spec.md` |
 
 ---
 
@@ -86,7 +113,12 @@ cp .laf/AGENTS.md .
 cp .laf/CONVENTIONS.md .
 
 # Set up tool integrations (creates symlinks so all tools read same AGENTS.md)
+
+# Linux/Mac:
 bash .laf/setup.sh --tools cursor,claude,copilot,windsurf
+
+# Windows (PowerShell):
+powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "cursor,claude,copilot,windsurf"
 ```
 
 ### 2. Customize `CONVENTIONS.md`
@@ -324,6 +356,28 @@ For risky changes (auth, payments, migrations):
 
 ---
 
+## Common workflows (shortcuts)
+
+**Standard feature:** `@spec-writer` → (PM approval) → `@scope-audit` (PASS) → `@architect` → (design approval) → `@developer` → `@self-check` → `@code-reviewer` → ship.
+
+**Bug fix:** `@developer` → `@self-check` → `@code-reviewer` → ship.
+
+**High-risk (auth, payments, migrations):** Same as standard feature, plus `@quality-check` before ship.
+
+**Resume later or switch tools:** Use `@session-memory` and keep `memory.md`; otherwise infer progress from which artifacts exist under `docs/`.
+
+---
+
+## Troubleshooting
+
+| Symptom | What to do |
+|---|---|
+| Agent asks many questions during spec work | Answer them; clearer scope avoids wrong builds. |
+| You only want a quick code tweak | Skip to `@developer` + review skills for tiny changes; gates exist for larger work. |
+| Lost chat after switching IDE | Lean on artifacts in repo (`docs/specs/`, `docs/architecture/`, `memory.md` if used). |
+
+---
+
 ## Comparison: LAF vs. VPF
 
 | Aspect | LAF (This Framework) | VPF (Virtual Product Factory) |
@@ -347,13 +401,14 @@ lean-agent-framework/
 ├── README.md                       ← You are here
 ├── LICENSE (MIT)
 ├── package.json
+├── setup.sh                         ← POSIX setup (Linux/macOS/Git Bash)
+├── setup.ps1                        ← PowerShell setup (Windows)
 ├── .gitignore
 │
-├── AGENTS.md                       ← Universal rulebook (DO NOT EDIT, fork instead)
+├── AGENTS.md                       ← Universal rulebook (fork upstream, customize in your org)
 ├── CONVENTIONS.md                  ← Template for team customization
-├── INDEX.md                        ← Skill reference
+├── INDEX.md                        ← Skill index & workflows (human navigation)
 │
-├── skills/                         ← Skill definitions
 │   ├── spec-writer/SKILL.md
 │   ├── scope-audit/SKILL.md
 │   ├── architect/SKILL.md
@@ -363,24 +418,12 @@ lean-agent-framework/
 │   ├── quality-check/SKILL.md
 │   └── session-memory/SKILL.md
 │
-├── templates/                      ← Artifact templates
-│   ├── APPROVAL-WORKFLOW.md
-│   ├── spec-template.md
-│   ├── tech-spec-template.md
-│   └── .project/
-│       ├── approvals-template.md
-│       ├── metrics-template.md
-│       └── stories-template.md
+├── templates/                      ← Artifact templates (gate workflow)
+│   └── APPROVAL-WORKFLOW.md
 │
-├── examples/                       ← Reference implementations
+├── examples/                       ← Reference examples
 │   ├── sample-spec.md
-│   ├── sample-tech-spec.md
-│   ├── sample-approval-log.md
-│   └── sample-workflow.txt
-│
-└── bin/                            ← Setup & CLI
-    ├── setup.sh
-    └── cli.js
+│   └── sample-tech-spec.md
 ```
 
 ---
@@ -395,21 +438,27 @@ git submodule update --init --recursive
 cp .laf/AGENTS.md .
 cp .laf/CONVENTIONS.md .
 
-# Set up all tools (or specific ones)
+# Linux/Mac - All tools (recommended):
 bash .laf/setup.sh --tools cursor,claude,copilot,windsurf
+
+# Windows PowerShell - All tools (recommended):
+powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "cursor,claude,copilot,windsurf"
 ```
 
 ### Option 2: Setup Specific Tools Only
 
 ```bash
-# All tools at once (recommended)
-bash .laf/setup.sh --tools cursor,claude,copilot,windsurf
-
-# Or individual tools
+# Linux/Mac - Individual tools:
 bash .laf/setup.sh --tools cursor      # Just Cursor
 bash .laf/setup.sh --tools claude      # Just Claude Code
 bash .laf/setup.sh --tools copilot     # Just GitHub Copilot
 bash .laf/setup.sh --tools windsurf    # Just Windsurf
+
+# Windows PowerShell - Individual tools:
+powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "cursor"
+powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "claude"
+powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "copilot"
+powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "windsurf"
 ```
 
 ### Option 3: Manual Symlinks (No setup script)
@@ -436,19 +485,27 @@ New-Item -ItemType SymbolicLink -Path ".claude.md" -Target "AGENTS.md" -Force
 New-Item -ItemType SymbolicLink -Path ".kiro/steering/agents.md" -Target "../../AGENTS.md" -Force
 ```
 
+**Windows users:** If symlinks fail due to permissions:
+
+1. Enable Developer Mode: `Settings → Privacy & Security → For developers → Developer Mode (ON)`
+2. Re-run the setup script, or
+3. Manually copy `AGENTS.md` into each tool's config location instead of symlinking:
+   ```powershell
+   Copy-Item AGENTS.md .cursorrules
+   Copy-Item AGENTS.md .claude.md
+   Copy-Item AGENTS.md .github/copilot-instructions.md
+   Copy-Item AGENTS.md .windsurfrules
+   ```
+
+**Note:** With copies, edits to `AGENTS.md` won't auto-propagate to all tools. Symlinks are recommended.
+
 ### Option 4: Direct Clone
 
 ```bash
 git clone https://github.com/your-org/lean-agent-framework.git
 cp lean-agent-framework/AGENTS.md your-project/
 cp lean-agent-framework/CONVENTIONS.md your-project/
-# Then create symlinks manually (see Option 3)
-```
-
-### Option 5: NPX (When published to npm)
-
-```bash
-npx lean-agent-framework init --submodule --tools cursor,claude,copilot,windsurf
+# Then run setup script (see Option 1 or 2) or create symlinks manually (see Option 3)
 ```
 
 ---
@@ -484,9 +541,10 @@ The setup script creates symlinks so all AI tools read the same `AGENTS.md`:
 
 1. **Fork this repo** or clone it into your project
 2. **Customize `CONVENTIONS.md`** for your stack
-3. **Run setup.sh** to initialize your project
-4. **Read `INDEX.md`** for detailed skill reference
-5. **Create your first feature** using the workflow above
+3. **Run** `.laf/setup.sh` or `.laf/setup.ps1` from your project root (or create symlinks manually — see Setup Options above)
+4. **Read [`AGENTS.md`](AGENTS.md)** (rules) and **[`INDEX.md`](INDEX.md)** (when to use which skill)
+5. Skim **`skills/*/SKILL.md`** for roles you invoke often
+6. **Create your first feature** using the workflow above
 
 ---
 
@@ -501,8 +559,20 @@ Found a bug? Have a clearer name for a skill? Want to add a new skill?
 All changes should:
 - Maintain the "lean" philosophy (8 skills, not 32)
 - Use clear, non-jargon names
-- Include updated `INDEX.md` entries
-- Add examples if introducing new concepts
+- Document new concepts in **`README.md`** / **`INDEX.md`** as appropriate
+- Include or update **`skills/<skill-name>/SKILL.md`** files and examples where relevant
+
+### For Future Tool Support
+
+If adding a new AI tool:
+1. Determine its system prompt / config file location (check tool docs)
+2. Add to the **Supported AI Tools** table in `README.md`
+3. Create symlink or copy command in `setup.sh` / `setup.ps1`
+4. Update `AGENTS.md` Rule 3 comment if tool has different config format
+
+If a tool doesn't support Markdown:
+- Use `INDEX.md` as a reference; manually translate key rules into that tool's format
+- Consider submitting a PR with a **tool adapter** (e.g., `.md` → `.toml` or `.yaml` converter)
 
 ---
 
@@ -515,9 +585,26 @@ MIT — Use freely, modify, fork, and share.
 ## Questions?
 
 - **How do I customize this for my team?** → Edit `CONVENTIONS.md`
-- **How do I add a new skill?** → See `INDEX.md` and skills examples
+- **Which skill should I use next?** → **[INDEX.md](INDEX.md)** (Quick Reference section)
+- **How do I add a new skill?** → Add **`skills/<name>/SKILL.md`**, extend **`INDEX.md`** and your copy of **`AGENTS.md`** if routing changes, update **`README.md`** skill table if needed
 - **Can I use this with [tool]?** → Yes, if it reads markdown system prompts (Cursor, Claude Code, Copilot, Windsurf all do)
 - **Is this production-ready?** → Yes. Start with 1 small feature to validate.
+
+---
+
+## Tested Compatibility
+
+This framework has been verified with:
+
+| Tool | Version | Config File | Status |
+|------|---------|-------------|--------|
+| **Cursor** | v0.43+ | `.cursorrules` | ✅ Active |
+| **Claude Code** | 2026-05+ | `.claude.md` | ✅ Active |
+| **GitHub Copilot** | 2026 Q2+ | `.github/copilot-instructions.md` | ✅ Supported |
+| **Windsurf** | Latest | `.windsurfrules` | ✅ Supported |
+| **Git** | 2.30+ | (symlink support) | ✅ Required |
+
+**Windows note:** Symlink creation requires either admin privileges or Developer Mode enabled. See Setup Options → Option 3 for fallback.
 
 ---
 
