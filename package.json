@@ -1,0 +1,41 @@
+{
+  "name": "lean-agent-framework",
+  "version": "1.0.0",
+  "description": "Tool-agnostic AI workflow framework for lean teams (PM + Dev, no QA). Inspired by Virtual Product Factory.",
+  "keywords": [
+    "ai",
+    "agents",
+    "lean",
+    "cursor",
+    "claude",
+    "copilot",
+    "workflow",
+    "specifications",
+    "product-engineering"
+  ],
+  "author": "Lean Agent Framework Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/lean-agent-framework"
+  },
+  "bin": {
+    "laf": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "templates/",
+    "examples/",
+    "AGENTS.md",
+    "CONVENTIONS.md",
+    "README.md",
+    "INDEX.md"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
