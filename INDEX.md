@@ -1,6 +1,6 @@
 ﻿# Lean Agent Framework — Skill Index
 
-*Authoritative reference for all 8 skills. For quick overview, see [README.md](README.md). To understand the 6-layer agent context model, see [CONTEXT-LAYERS.md](CONTEXT-LAYERS.md).*
+*Authoritative reference for all 8 skills. For quick overview, see [README.md](README.md). To understand the 6-layer agent context model, see [CONTEXT-LAYERS.md](CONTEXT-LAYERS.md). To clarify PR comments vs. markdown reports, see [docs/automation/PR-COMMENTS-VS-MARKDOWN.md](docs/automation/PR-COMMENTS-VS-MARKDOWN.md).*
 
 ---
 
