@@ -11,7 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### 2026-05-03: 6-Layer Agent Context Framework
+#### 2026-05-03: GitHub Actions Integration & PR Review Clarification
+
+**New Documentation:**
+- **`docs/automation/PR-COMMENTS-VS-MARKDOWN.md`** (280 lines)
+  - Clarifies the distinction between PR comments and markdown reports
+  - Explains when to use each (not duplicates, different purposes)
+  - Shows how they work together in feature development
+  - Provides decision matrix for different team sizes
+  - Implementation patterns (minimal/automated/formal)
+  - FAQ section
+
+**Updated:**
+- **`INDEX.md`** — Added reference to PR-COMMENTS-VS-MARKDOWN.md in header
+
+**Why this matters:**
+- Teams often ask: "Why do we need both PR comments AND review-report.md?"
+- This document clarifies the complementary role of each
+- PR comments = real-time feedback (development phase)
+- Markdown reports = formal approval records (archive phase)
+- Keeps LAF focused on workflow, not specific tools (GitHub Actions optional)
+
+**Note:** This is hybrid approach — clarification only, no workflow templates added yet. Teams can automate PR comments with GitHub Actions using their own patterns, or keep it manual.
 
 **New Documents:**
 - **`CONTEXT-LAYERS.md`** (399 lines)
