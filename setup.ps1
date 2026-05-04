@@ -6,6 +6,8 @@ param(
     [switch]$help = $false
 )
 
+$script:ProjectRoot = $null
+
 # Colors and output helpers
 function Write-Status {
     param([string]$message)
@@ -39,6 +41,10 @@ Options:
                     Valid: cursor, claude, copilot, windsurf, kiro, all (default: all)
   -help            Show this help message
 
+Prerequisites:
+  On Windows, run PowerShell as Administrator or enable Developer Mode so
+  symlinks can be created successfully.
+
 Examples:
   powershell -ExecutionPolicy Bypass -File setup.ps1
   powershell -ExecutionPolicy Bypass -File setup.ps1 -tools "cursor,claude,copilot"
@@ -48,21 +54,22 @@ Examples:
 After setup:
   1. Verify AGENTS.md is in your project root
   2. Customize CONVENTIONS.md for your team's stack
-  3. Commit symlinks to git: git add .cursorrules .claude.md .windsurfrules etc.
+  3. Commit link files to git: git add .cursorrules .claude.md .windsurfrules etc.
   4. Start using with your AI tools - they'll all read the same AGENTS.md!
 
 All tools will read the same AGENTS.md via symlinks.
-Edit AGENTS.md once, all tools see the update.
+Edit AGENTS.md once, and linked configs stay in sync.
 "@
 }
 
 # Check if we're in a git repository
 function Check-GitRepo {
     try {
-        $null = git rev-parse --git-dir 2>$null
+        $script:ProjectRoot = (git rev-parse --show-toplevel 2>$null).Trim()
         if ($LASTEXITCODE -ne 0) {
             throw "Not a git repository"
         }
+        Set-Location $script:ProjectRoot
     }
     catch {
         Write-Error-Custom "Not in a git repository. Please run this script from your project root."
@@ -112,41 +119,60 @@ function New-SymlinkForce {
         Remove-Item $Link -Force -ErrorAction SilentlyContinue
     }
     
-    # Create new symlink
     try {
-        New-Item -ItemType SymbolicLink -Path $Link -Target $Target -Force | Out-Null
+        New-Item -ItemType SymbolicLink -Path $Link -Target $Target -Force -ErrorAction Stop | Out-Null
         return $true
     }
     catch {
-        Write-Warning "Could not create symlink: $Link -> $Target (may require admin privileges)"
-        return $false
+        $errorText = @(
+            $_.Exception.Message
+            $_.FullyQualifiedErrorId
+            $_.CategoryInfo.Reason
+        ) -join " "
+
+        if ($errorText -match 'Administrator privilege|elevation|privilege|ElevationRequired|UnauthorizedAccess') {
+            throw "Symlink creation requires Administrator privileges or Windows Developer Mode. Re-run PowerShell as Administrator, or enable Developer Mode, then try again."
+        }
+
+        throw "Could not create symlink: $Link -> $Target. $($_.Exception.Message)"
     }
+}
+
+# Resolve paths relative to the detected project root.
+function Get-ProjectPath {
+    param([string]$RelativePath)
+
+    if (-not $script:ProjectRoot) {
+        $script:ProjectRoot = (Get-Location).Path
+    }
+
+    return (Join-Path $script:ProjectRoot $RelativePath)
 }
 
 # Setup all tools
 function Setup-AllTools {
-    Write-Status "Setting up AI tool configurations (symlinked to AGENTS.md)..."
+    Write-Status "Setting up AI tool configurations symlinked to AGENTS.md..."
 
     # Cursor
-    New-SymlinkForce -Target "../AGENTS.md" -Link ".cursor/rules.md" | Out-Null
-    New-SymlinkForce -Target "AGENTS.md" -Link ".cursorrules" | Out-Null
-    Write-Success "✓ Cursor configured"
+    New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".cursor/rules.md" | Out-Null
+    New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".cursorrules" | Out-Null
+    Write-Success "[OK] Cursor configured"
 
     # GitHub Copilot
-    New-SymlinkForce -Target "../AGENTS.md" -Link ".github/copilot-instructions.md" | Out-Null
-    Write-Success "✓ GitHub Copilot configured"
+    New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".github/copilot-instructions.md" | Out-Null
+    Write-Success "[OK] GitHub Copilot configured"
 
     # Windsurf
-    New-SymlinkForce -Target "AGENTS.md" -Link ".windsurfrules" | Out-Null
-    Write-Success "✓ Windsurf configured"
+    New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".windsurfrules" | Out-Null
+    Write-Success "[OK] Windsurf configured"
 
     # Claude Code
-    New-SymlinkForce -Target "AGENTS.md" -Link ".claude.md" | Out-Null
-    Write-Success "✓ Claude Code configured"
+    New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".claude.md" | Out-Null
+    Write-Success "[OK] Claude Code configured"
 
     # Kiro
-    New-SymlinkForce -Target "../../AGENTS.md" -Link ".kiro/steering/agents.md" | Out-Null
-    Write-Success "✓ Kiro configured"
+    New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".kiro/steering/agents.md" | Out-Null
+    Write-Success "[OK] Kiro configured"
 
     Write-Success "All AI tools configured!"
 }
@@ -160,29 +186,29 @@ function Setup-Tool {
     switch ($tool) {
         "cursor" {
             Write-Status "Setting up Cursor..."
-            New-SymlinkForce -Target "../AGENTS.md" -Link ".cursor/rules.md" | Out-Null
-            New-SymlinkForce -Target "AGENTS.md" -Link ".cursorrules" | Out-Null
-            Write-Success "✓ Cursor configured"
+            New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".cursor/rules.md" | Out-Null
+            New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".cursorrules" | Out-Null
+            Write-Success "[OK] Cursor configured"
         }
         "claude" {
             Write-Status "Setting up Claude Code..."
-            New-SymlinkForce -Target "AGENTS.md" -Link ".claude.md" | Out-Null
-            Write-Success "✓ Claude Code configured"
+            New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".claude.md" | Out-Null
+            Write-Success "[OK] Claude Code configured"
         }
         "copilot" {
             Write-Status "Setting up GitHub Copilot..."
-            New-SymlinkForce -Target "../AGENTS.md" -Link ".github/copilot-instructions.md" | Out-Null
-            Write-Success "✓ GitHub Copilot configured"
+            New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".github/copilot-instructions.md" | Out-Null
+            Write-Success "[OK] GitHub Copilot configured"
         }
         "windsurf" {
             Write-Status "Setting up Windsurf..."
-            New-SymlinkForce -Target "AGENTS.md" -Link ".windsurfrules" | Out-Null
-            Write-Success "✓ Windsurf configured"
+            New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".windsurfrules" | Out-Null
+            Write-Success "[OK] Windsurf configured"
         }
         "kiro" {
             Write-Status "Setting up Kiro..."
-            New-SymlinkForce -Target "../../AGENTS.md" -Link ".kiro/steering/agents.md" | Out-Null
-            Write-Success "✓ Kiro configured"
+            New-SymlinkForce -Target (Get-ProjectPath "AGENTS.md") -Link ".kiro/steering/agents.md" | Out-Null
+            Write-Success "[OK] Kiro configured"
         }
         default {
             Write-Warning "Unknown tool: $tool (skipping)"
@@ -193,7 +219,7 @@ function Setup-Tool {
 # Main
 function Main {
     Write-Host ""
-    Write-Host "🤖 Lean Agent Framework Setup" -ForegroundColor Magenta
+    Write-Host "Lean Agent Framework Setup" -ForegroundColor Magenta
     Write-Host "==============================" -ForegroundColor Magenta
     Write-Host ""
 
@@ -207,29 +233,35 @@ function Main {
     Check-AgentsMd
     Check-ConventionsMd
 
-    # Setup based on tools argument
-    if ($tools -eq "all") {
-        Setup-AllTools
-    }
-    else {
-        $toolArray = $tools -split "," | ForEach-Object { $_.Trim() }
-        foreach ($tool in $toolArray) {
-            Setup-Tool -tool $tool
+    try {
+        # Setup based on tools argument
+        if ($tools -eq "all") {
+            Setup-AllTools
         }
+        else {
+            $toolArray = $tools -split "," | ForEach-Object { $_.Trim() }
+            foreach ($tool in $toolArray) {
+                Setup-Tool -tool $tool
+            }
+        }
+    }
+    catch {
+        Write-Error-Custom $_.Exception.Message
+        exit 1
     }
 
     Write-Host ""
     Write-Success "Setup complete!"
     Write-Host ""
-    Write-Host "📋 Next steps:" -ForegroundColor Cyan
-    Write-Host "1. ✅ All AI tools now read from AGENTS.md"
-    Write-Host "2. 🔧 Customize CONVENTIONS.md for your team's stack"
-    Write-Host "3. 📝 Commit symlinks to git:"
+    Write-Host "Next steps:" -ForegroundColor Cyan
+    Write-Host "1. [OK] All AI tools now read from AGENTS.md"
+    Write-Host "2. [INFO] Customize CONVENTIONS.md for your team's stack"
+    Write-Host "3. Commit symlink files to git:"
     Write-Host "     git add .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/" -ForegroundColor Gray
     Write-Host "     git commit -m 'chore: Configure AI tools to read shared AGENTS.md'" -ForegroundColor Gray
-    Write-Host "4. 🚀 Start using! All tools see the same rules."
+    Write-Host "4. Start using! All tools see the same rules."
     Write-Host ""
-    Write-Host "💡 Pro tip: Edit AGENTS.md once, all tools read the update instantly!" -ForegroundColor Yellow
+    Write-Host "Pro tip: Edit AGENTS.md once, all tools read the update instantly!" -ForegroundColor Yellow
     Write-Host ""
 }
 

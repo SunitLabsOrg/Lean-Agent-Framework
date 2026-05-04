@@ -28,6 +28,28 @@ print_error() {
   echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Create a symlink and fail loudly with a helpful privilege message.
+create_symlink() {
+  local target="$1"
+  local link="$2"
+  local parent_dir
+
+  parent_dir="$(dirname "$link")"
+  mkdir -p "$parent_dir"
+
+  if ln -sf "$target" "$link"; then
+    return 0
+  fi
+
+  print_error "Could not create symlink: $link -> $target"
+  case "${OSTYPE:-}" in
+    msys*|cygwin*|win32*|mingw*)
+      print_error "On Windows, run this shell as Administrator or enable Developer Mode, then try again."
+      ;;
+  esac
+  exit 1
+}
+
 # Check if we're in a git repository
 check_git_repo() {
   if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -64,30 +86,26 @@ setup_all_tools() {
   print_status "Setting up AI tool configurations (symlinked to AGENTS.md)..."
 
   # Cursor
-  mkdir -p .cursor
-  ln -sf ../AGENTS.md .cursor/rules.md 2>/dev/null || true
-  ln -sf AGENTS.md .cursorrules 2>/dev/null || true
+  create_symlink "../AGENTS.md" ".cursor/rules.md"
+  create_symlink "AGENTS.md" ".cursorrules"
   print_success "✓ Cursor configured"
 
   # GitHub Copilot
-  mkdir -p .github
-  ln -sf ../AGENTS.md .github/copilot-instructions.md 2>/dev/null || true
+  create_symlink "../AGENTS.md" ".github/copilot-instructions.md"
   print_success "✓ GitHub Copilot configured"
 
   # Windsurf
-  ln -sf AGENTS.md .windsurfrules 2>/dev/null || true
+  create_symlink "AGENTS.md" ".windsurfrules"
   print_success "✓ Windsurf configured"
 
   # Claude Code
-  ln -sf AGENTS.md .claude.md 2>/dev/null || true
+  create_symlink "AGENTS.md" ".claude.md"
   print_success "✓ Claude Code configured"
 
-  # Gemini (fallback, may not be used)
-  ln -sf AGENTS.md gemini-rules.md 2>/dev/null || true
+  create_symlink "AGENTS.md" "gemini-rules.md"
 
   # Kiro
-  mkdir -p .kiro/steering
-  ln -sf ../../AGENTS.md .kiro/steering/agents.md 2>/dev/null || true
+  create_symlink "../../AGENTS.md" ".kiro/steering/agents.md"
   print_success "✓ Kiro configured"
 
   print_success "All AI tools configured!"
@@ -96,39 +114,36 @@ setup_all_tools() {
 # Setup only cursor
 setup_cursor() {
   print_status "Setting up Cursor..."
-  mkdir -p .cursor
-  ln -sf ../AGENTS.md .cursor/rules.md 2>/dev/null || true
-  ln -sf AGENTS.md .cursorrules 2>/dev/null || true
+  create_symlink "../AGENTS.md" ".cursor/rules.md"
+  create_symlink "AGENTS.md" ".cursorrules"
   print_success "✓ Cursor configured"
 }
 
 # Setup only claude
 setup_claude() {
   print_status "Setting up Claude Code..."
-  ln -sf AGENTS.md .claude.md 2>/dev/null || true
+  create_symlink "AGENTS.md" ".claude.md"
   print_success "✓ Claude Code configured"
 }
 
 # Setup only copilot
 setup_copilot() {
   print_status "Setting up GitHub Copilot..."
-  mkdir -p .github
-  ln -sf ../AGENTS.md .github/copilot-instructions.md 2>/dev/null || true
+  create_symlink "../AGENTS.md" ".github/copilot-instructions.md"
   print_success "✓ GitHub Copilot configured"
 }
 
 # Setup only windsurf
 setup_windsurf() {
   print_status "Setting up Windsurf..."
-  ln -sf AGENTS.md .windsurfrules 2>/dev/null || true
+  create_symlink "AGENTS.md" ".windsurfrules"
   print_success "✓ Windsurf configured"
 }
 
 # Setup only kiro
 setup_kiro() {
   print_status "Setting up Kiro..."
-  mkdir -p .kiro/steering
-  ln -sf ../../AGENTS.md .kiro/steering/agents.md 2>/dev/null || true
+  create_symlink "../../AGENTS.md" ".kiro/steering/agents.md"
   print_success "✓ Kiro configured"
 }
 
@@ -143,6 +158,10 @@ Options:
   --tools TOOLS      Comma-separated list of tools to configure
                      Valid: cursor, claude, copilot, windsurf, kiro, all (default: all)
   --help            Show this help message
+
+Prerequisites:
+  On Windows, run this shell with privileges that allow symlink creation
+  or enable Developer Mode before executing it.
 
 Examples:
   bash setup.sh                                      # Setup all tools
