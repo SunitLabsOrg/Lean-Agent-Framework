@@ -122,6 +122,9 @@ bash .laf/setup.sh --tools cursor,claude,copilot,windsurf
 powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "cursor,claude,copilot,windsurf"
 ```
 
+> Note: this step creates symlinks. Run PowerShell as Administrator or enable
+> Windows Developer Mode before executing it.
+
 ### 2. Customize `CONVENTIONS.md`
 
 Edit your project's `CONVENTIONS.md`:
