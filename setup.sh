@@ -50,14 +50,6 @@ create_symlink() {
   exit 1
 }
 
-# Check if we're in a git repository
-check_git_repo() {
-  if ! git rev-parse --git-dir > /dev/null 2>&1; then
-    print_error "Not in a git repository. Please run this script from your project root."
-    exit 1
-  fi
-}
-
 # Verify AGENTS.md exists
 check_agents_md() {
   if [ ! -f "AGENTS.md" ]; then
@@ -209,7 +201,6 @@ main() {
   done
 
   # Verify prerequisites
-  check_git_repo
   check_agents_md
   check_conventions_md
 

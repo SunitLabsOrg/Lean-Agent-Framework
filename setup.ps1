@@ -62,21 +62,6 @@ Edit AGENTS.md once, and linked configs stay in sync.
 "@
 }
 
-# Check if we're in a git repository
-function Check-GitRepo {
-    try {
-        $script:ProjectRoot = (git rev-parse --show-toplevel 2>$null).Trim()
-        if ($LASTEXITCODE -ne 0) {
-            throw "Not a git repository"
-        }
-        Set-Location $script:ProjectRoot
-    }
-    catch {
-        Write-Error-Custom "Not in a git repository. Please run this script from your project root."
-        exit 1
-    }
-}
-
 # Verify AGENTS.md exists
 function Check-AgentsMd {
     if (-not (Test-Path "AGENTS.md")) {
@@ -229,7 +214,6 @@ function Main {
     }
 
     # Verify prerequisites
-    Check-GitRepo
     Check-AgentsMd
     Check-ConventionsMd
 
