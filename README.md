@@ -6,8 +6,6 @@ Start with **this README** for overview and setup; use **[INDEX.md](INDEX.md)** 
 
 A lightweight, tool-agnostic AI workflow framework for small teams (PM + Dev, no QA). Use it to keep multiple AI tools (Cursor, Claude Code, Copilot, Windsurf) working consistently on the same codebase, with built-in approval gates and artifact tracking.
 
-**Inspired by:** [Virtual Product Factory](https://github.com/vshrinath/virtual-product-factory) (VPF), simplified for lean teams.
-
 ---
 
 ## Documentation map
@@ -90,7 +88,7 @@ Focused on lean teams:
 ### Core documents
 
 1. `**AGENTS.md`** — Universal rules for all AI tools (16 rules, ~357 lines)
-2. `**CONVENTIONS.md**` — Your team's stack/style decisions (customize this)
+2. `**CONVENTIONS.md`** — Your team's stack/style decisions (customize this)
 3. `**INDEX.md**` — Skill reference: workflows, gates, scenarios (`skills/*/SKILL.md` for full prompts)
 4. **8 × `skills/<name>/SKILL.md`** — Role prompts loaded on demand
 
@@ -122,7 +120,7 @@ cd your-project
 cp .laf/AGENTS.md .
 cp .laf/CONVENTIONS.md .
 
-# Set up tool integrations (creates symlinks so all tools read same AGENTS.md)
+# Set up tool integrations and copy skills (creates symlinks so all tools read same AGENTS.md)
 
 # Node.js (Platform-agnostic, Recommended):
 node .laf/setup.js --tools cursor,claude,copilot,windsurf
@@ -134,7 +132,7 @@ bash .laf/setup.sh --tools cursor,claude,copilot,windsurf
 powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "cursor,claude,copilot,windsurf"
 ```
 
-> Note: this step creates symlinks. Run PowerShell as Administrator or enable
+> Note: this step creates symlinks and copies the skills/ folder. Run PowerShell as Administrator or enable
 > Windows Developer Mode before executing it.
 
 ### 2. Customize `CONVENTIONS.md`
@@ -481,6 +479,8 @@ bash .laf/setup.sh --tools cursor,claude,copilot,windsurf
 powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "cursor,claude,copilot,windsurf"
 ```
 
+> This copies AGENTS.md, CONVENTIONS.md, creates symlinks for tools, and copies the skills/ folder to your project.
+
 ### Option 2: Setup Specific Tools Only
 
 ```bash
@@ -505,9 +505,12 @@ powershell -ExecutionPolicy Bypass -File .laf/setup.ps1 -tools "windsurf"
 
 ### Option 3: Manual Symlinks (No setup script)
 
-If you prefer to create symlinks manually:
+If you prefer to create symlinks manually and copy skills:
 
 ```bash
+# Copy skills folder first
+cp -r .laf/skills ./skills
+
 # Linux/Mac:
 mkdir -p .cursor .github .kiro/steering
 ln -sf ../AGENTS.md .cursor/rules.md
@@ -519,6 +522,7 @@ ln -sf ../../AGENTS.md .kiro/steering/agents.md
 
 # Windows (PowerShell):
 mkdir -p .cursor, .github, .kiro/steering
+Copy-Item -Recurse .laf/skills ./skills
 New-Item -ItemType SymbolicLink -Path ".cursor/rules.md" -Target "../AGENTS.md" -Force
 New-Item -ItemType SymbolicLink -Path ".cursorrules" -Target "AGENTS.md" -Force
 New-Item -ItemType SymbolicLink -Path ".github/copilot-instructions.md" -Target "../AGENTS.md" -Force
@@ -547,6 +551,7 @@ New-Item -ItemType SymbolicLink -Path ".kiro/steering/agents.md" -Target "../../
 git clone https://github.com/your-org/lean-agent-framework.git
 cp lean-agent-framework/AGENTS.md your-project/
 cp lean-agent-framework/CONVENTIONS.md your-project/
+cp -r lean-agent-framework/skills your-project/
 # Then run setup script (see Option 1 or 2) or create symlinks manually (see Option 3)
 ```
 
@@ -583,10 +588,16 @@ The setup script creates symlinks so all AI tools read the same `AGENTS.md`:
 
 1. **Fork this repo** or clone it into your project
 2. **Customize `CONVENTIONS.md`** for your stack
-3. **Run** `.laf/setup.js` (recommended), `.laf/setup.sh`, or `.laf/setup.ps1` from your project root (or create symlinks manually — see Setup Options above)
+3. **Run** `.laf/setup.js` (recommended), `.laf/setup.sh`, or `.laf/setup.ps1` from your project root (or create symlinks manually and copy skills — see Setup Options above)
+  - This creates symlinks for AGENTS.md and **copies the skills/ folder**
 4. **Read `[AGENTS.md](AGENTS.md)`** (rules) and `**[INDEX.md](INDEX.md)**` (when to use which skill)
-5. Skim `**skills/*/SKILL.md**` for roles you invoke often
-6. **Create your first feature** using the workflow above
+5. **Commit skills/ folder to git:**
+  ```bash
+   git add skills/ .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/
+   git commit -m "chore: Add Lean Agent Framework setup"
+  ```
+6. Skim `**skills/*/SKILL.md**` for roles you invoke often
+7. **Create your first feature** using the workflow above
 
 ---
 
@@ -602,7 +613,7 @@ All changes should:
 
 - Maintain the "lean" philosophy (8 skills, not 32)
 - Use clear, non-jargon names
-- Document new concepts in `**README.md`** / `**INDEX.md**` as appropriate
+- Document new concepts in `**README.md`** / `**INDEX.md`** as appropriate
 - Include or update `**skills/<skill-name>/SKILL.md**` files and examples where relevant
 
 ### For Future Tool Support
@@ -631,7 +642,7 @@ MIT — Use freely, modify, fork, and share.
 
 - **How do I customize this for my team?** → Edit `CONVENTIONS.md`
 - **Which skill should I use next?** → **[INDEX.md](INDEX.md)** (Quick Reference section)
-- **How do I add a new skill?** → Add `**skills/<name>/SKILL.md`**, extend `**INDEX.md**` and your copy of `**AGENTS.md**` if routing changes, update `**README.md**` skill table if needed
+- **How do I add a new skill?** → Add `**skills/<name>/SKILL.md`**, extend `**INDEX.md`** and your copy of `**AGENTS.md**` if routing changes, update `**README.md**` skill table if needed
 - **Can I use this with [tool]?** → Yes, if it reads markdown system prompts (Cursor, Claude Code, Copilot, Windsurf all do)
 - **Is this production-ready?** → Yes. Start with 1 small feature to validate.
 
@@ -659,7 +670,6 @@ This framework has been verified with:
 
 Built on principles from:
 
-- [Virtual Product Factory](https://github.com/vshrinath/virtual-product-factory) by Shrinath V
 - Documentation-as-Code practices
 - Architecture Decision Records (ADRs)
 - Lean product development

@@ -86,6 +86,31 @@ function Check-ConventionsMd {
     }
 }
 
+# Copy skills folder
+function Copy-SkillsFolder {
+    $sourceSkills = ".laf\skills"
+    $destSkills = "skills"
+
+    if (-not (Test-Path $sourceSkills)) {
+        Write-Warning "skills/ folder not found in .laf/"
+        return
+    }
+
+    if (Test-Path $destSkills) {
+        Write-Status "skills/ folder already exists. Skipping copy."
+        return
+    }
+
+    try {
+        Copy-Item $sourceSkills $destSkills -Recurse -Force
+        Write-Success "skills/ folder copied to your project"
+    }
+    catch {
+        Write-Error-Custom "Could not copy skills/ folder: $($_.Exception.Message)"
+        exit 1
+    }
+}
+
 # Create symlink helper
 function New-SymlinkForce {
     param(
@@ -216,6 +241,7 @@ function Main {
     # Verify prerequisites
     Check-AgentsMd
     Check-ConventionsMd
+    Copy-SkillsFolder
 
     try {
         # Setup based on tools argument
@@ -239,11 +265,12 @@ function Main {
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan
     Write-Host "1. [OK] All AI tools now read from AGENTS.md"
-    Write-Host "2. [INFO] Customize CONVENTIONS.md for your team's stack"
-    Write-Host "3. Commit symlink files to git:"
-    Write-Host "     git add .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/" -ForegroundColor Gray
-    Write-Host "     git commit -m 'chore: Configure AI tools to read shared AGENTS.md'" -ForegroundColor Gray
-    Write-Host "4. Start using! All tools see the same rules."
+    Write-Host "2. [OK] Skills folder copied (skills/*/SKILL.md)"
+    Write-Host "3. [INFO] Customize CONVENTIONS.md for your team's stack"
+    Write-Host "4. Commit symlinks and skills to git:"
+    Write-Host "     git add .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/ skills/" -ForegroundColor Gray
+    Write-Host "     git commit -m 'chore: Configure AI tools to read shared AGENTS.md and skills'" -ForegroundColor Gray
+    Write-Host "5. Start using! All tools see the same rules."
     Write-Host ""
     Write-Host "Pro tip: Edit AGENTS.md once, all tools read the update instantly!" -ForegroundColor Yellow
     Write-Host ""

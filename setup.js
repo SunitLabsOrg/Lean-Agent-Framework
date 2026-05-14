@@ -80,6 +80,29 @@ function checkConventionsMd() {
   }
 }
 
+function copySkillsFolder() {
+  const sourceSkills = path.join('.laf', 'skills');
+  const destSkills = 'skills';
+
+  if (!fs.existsSync(sourceSkills)) {
+    printWarning('skills/ folder not found in .laf/');
+    return;
+  }
+
+  if (fs.existsSync(destSkills)) {
+    printStatus('skills/ folder already exists. Skipping copy.');
+    return;
+  }
+
+  try {
+    fs.cpSync(sourceSkills, destSkills, { recursive: true });
+    printSuccess('skills/ folder copied to your project');
+  } catch (error) {
+    printError(`Could not copy skills/ folder: ${error.message}`);
+    process.exit(1);
+  }
+}
+
 function createSymlink(targetRelativePath, linkPath) {
   const fullLinkPath = path.resolve(process.cwd(), linkPath);
   const linkDir = path.dirname(fullLinkPath);
@@ -161,6 +184,7 @@ function main() {
 
   checkAgentsMd();
   checkConventionsMd();
+  copySkillsFolder();
 
   const requestedTools = toolsArg === 'all' 
     ? Object.keys(toolsConfig) 
@@ -177,11 +201,12 @@ function main() {
   console.log(`\n${colors.green}[SUCCESS] Setup complete!${colors.reset}\n`);
   console.log(`${colors.cyan}📋 Next steps:${colors.reset}`);
   console.log('1. ✅ All AI tools now read from AGENTS.md');
-  console.log('2. 🔧 Customize CONVENTIONS.md for your team\'s stack');
-  console.log('3. 📝 Commit symlinks to git:');
-  console.log('     git add .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/ gemini-rules.md');
-  console.log('     git commit -m "chore: Configure AI tools to read shared AGENTS.md"');
-  console.log('4. 🚀 Start using! All tools see the same rules.\n');
+  console.log('2. 📚 Skills folder copied (skills/*/SKILL.md)');
+  console.log('3. 🔧 Customize CONVENTIONS.md for your team\'s stack');
+  console.log('4. 📝 Commit symlinks to git:');
+  console.log('     git add .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/ gemini-rules.md skills/');
+  console.log('     git commit -m "chore: Configure AI tools to read shared AGENTS.md and skills"');
+  console.log('5. 🚀 Start using! All tools see the same rules.\n');
   console.log(`${colors.yellow}💡 Pro tip: Edit AGENTS.md once, all tools read the update instantly!${colors.reset}\n`);
 }
 
