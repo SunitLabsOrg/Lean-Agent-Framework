@@ -73,6 +73,26 @@ check_conventions_md() {
   fi
 }
 
+# Copy skills folder
+copy_skills_folder() {
+  if [ ! -d ".laf/skills" ]; then
+    print_warning "skills/ folder not found in .laf/"
+    return 0
+  fi
+
+  if [ -d "skills" ]; then
+    print_status "skills/ folder already exists. Skipping copy."
+    return 0
+  fi
+
+  if cp -r ".laf/skills" "skills"; then
+    print_success "skills/ folder copied to your project"
+  else
+    print_error "Could not copy skills/ folder."
+    exit 1
+  fi
+}
+
 # Create symlinks for all tools
 setup_all_tools() {
   print_status "Setting up AI tool configurations (symlinked to AGENTS.md)..."
@@ -203,6 +223,7 @@ main() {
   # Verify prerequisites
   check_agents_md
   check_conventions_md
+  copy_skills_folder
 
   # Setup based on tools argument
   IFS=',' read -ra TOOL_ARRAY <<< "$TOOLS"
@@ -240,11 +261,12 @@ main() {
   echo
   echo "📋 Next steps:"
   echo "1. ✅ All AI tools now read from AGENTS.md"
-  echo "2. 🔧 Customize CONVENTIONS.md for your team's stack"
-  echo "3. 📝 Commit symlinks to git:"
-  echo "     git add .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/"
-  echo "     git commit -m 'chore: Configure AI tools to read shared AGENTS.md'"
-  echo "4. 🚀 Start using! All tools see the same rules."
+  echo "2. 📚 Skills folder copied (skills/*/SKILL.md)"
+  echo "3. 🔧 Customize CONVENTIONS.md for your team's stack"
+  echo "4. 📝 Commit symlinks and skills to git:"
+  echo "     git add .cursorrules .claude.md .windsurfrules .github/ .cursor/ .kiro/ skills/"
+  echo "     git commit -m 'chore: Configure AI tools to read shared AGENTS.md and skills'"
+  echo "5. 🚀 Start using! All tools see the same rules."
   echo
   echo "💡 Pro tip: Edit AGENTS.md once, all tools read the update instantly!"
   echo
